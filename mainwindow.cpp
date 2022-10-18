@@ -84,7 +84,7 @@ void MyUDP::SayHello()
     Data.append(datastream);
     socket->writeDatagram(Data,QHostAddress("192.168.29.232"),80);
 
-    qDebug() << "UDP Process took " << timer.nsecsElapsed() << "ns";
+    qDebug() << "UDP Elapsed Time= " << timer.nsecsElapsed() << "ns";
 }
 
 void MyUDP::readyRead()

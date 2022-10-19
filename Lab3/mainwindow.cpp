@@ -43,6 +43,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->brightSlider->setSliderPosition(50);
     ui->contSlider->setSliderPosition(50);
+    ui->b_label->setText("Brightness: 50");
+    ui->c_label->setText("Contrast: 50");
     server.SayHello();
 }
 
@@ -132,6 +134,7 @@ void MainWindow::on_brightSlider_sliderMoved(int position)
 
     global_brightness = position;
     server.SayHello();
+    ui->b_label->setText("Brightness: " + QString::number(position));
     //defined image as a QImage object from file path
 
     image = QImage(file_Path).convertToFormat(QImage::Format_Grayscale8);
@@ -174,6 +177,8 @@ void MainWindow::on_contSlider_sliderMoved(int position)
 
     // extract image from the file path and convert to a QImage object
     image = QImage(file_Path).convertToFormat(QImage::Format_Grayscale8);
+
+    ui->c_label->setText("Contrast: " + QString::number(position));
 
     float contrast = ((float(position)/50)-1)*128;
 

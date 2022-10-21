@@ -57,7 +57,7 @@ MyUDP::MyUDP(QObject *parent):
     QObject(parent)
 {
     socket = new QUdpSocket(this);
-    socket->bind(QHostAddress("192.168.29.232"),80);
+    socket->bind(QHostAddress("192.168.29.255"),80);
 
     connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));
 }
@@ -84,7 +84,7 @@ void MyUDP::SayHello()
         }
     datastream = temp_bright + temp_cont;
     Data.append(datastream);
-    socket->writeDatagram(Data,QHostAddress("192.168.29.232"),80);
+    socket->writeDatagram(Data,QHostAddress("192.168.29.255"),80);
 
     qDebug() << "UDP Elapsed Time= " << timer.nsecsElapsed() << "ns";
 }

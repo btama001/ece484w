@@ -21,6 +21,8 @@
 #include <QUdpSocket>
 #include <QtNetwork>
 #include <QElapsedTimer>
+#include <QDataStream>
+#include <QImageWriter>
 
 using namespace std;
 
@@ -31,6 +33,8 @@ QString file_Path;
 QImage image;
 int global_contrast;
 int global_brightness;
+QByteArray image_array;
+int total_bytes;
 
 MyUDP server;
 
@@ -45,7 +49,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->contSlider->setSliderPosition(50);
     ui->b_label->setText("Brightness: 50");
     ui->c_label->setText("Contrast: 50");
-    server.SayHello();
 }
 
 MainWindow::~MainWindow()
@@ -57,36 +60,17 @@ MyUDP::MyUDP(QObject *parent):
     QObject(parent)
 {
     socket = new QUdpSocket(this);
-    socket->bind(QHostAddress("192.168.29.255"),80);
+    cout << " check ip address" << endl;
+    socket->bind(QHostAddress("172.20.10.11"),80);
 
     connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));
 }
 
 void MyUDP::SayHello()
 {
-    QElapsedTimer timer;
-    timer.start();
-
-    QByteArray Data;
-    string datastream, temp_bright, temp_cont;
-    if (global_brightness < 10){
-        temp_bright = "0" + to_string(global_brightness);
-    }
-    else{
-        temp_bright = to_string(global_brightness);
-    }
-
-    if (global_contrast < 10){
-        temp_cont = "0" + to_string(global_contrast);
-        }
-    else{
-        temp_cont = to_string(global_contrast);
-        }
-    datastream = temp_bright + temp_cont;
-    Data.append(datastream);
-    socket->writeDatagram(Data,QHostAddress("192.168.29.255"),80);
-
-    qDebug() << "UDP Elapsed Time= " << timer.nsecsElapsed() << "ns";
+    int bytes = socket->writeDatagram(image_array,QHostAddress("172.20.10.11"),80);
+    total_bytes = total_bytes + (bytes/2);
+    cout << "bytes send = " << total_bytes << endl;
 }
 
 void MyUDP::readyRead()
@@ -127,7 +111,6 @@ void MainWindow::on_brightSlider_sliderMoved(int position)
     float relative_position = float(position)/50;
 
     global_brightness = position;
-    server.SayHello();
     ui->b_label->setText("Brightness: " + QString::number(position));
     //defined image as a QImage object from file path
 
@@ -179,9 +162,6 @@ void MainWindow::on_contSlider_sliderMoved(int position)
     float factor = (259*(255+contrast))/(255*(259-contrast));
 
     global_contrast = position;
-    server.SayHello();
-
-
 
     for (int b = 0 ; b < image.width() ; b++)
     {
@@ -234,12 +214,62 @@ void MainWindow::on_saveButton_clicked()
 
 void MainWindow::on_TransferButton_clicked()
 {
+    total_bytes = 0;
+    image_array.clear();
+    image_array.append("new_image");
+    server.SayHello();
+    image = QImage(file_Path);
+
+    /*QByteArray temp;
+    QBuffer buffer(&temp);
+    buffer.open(QIODevice::ReadWrite);
+    image.save(&buffer, "BMP");
+
+    QString x = buffer.data().toHex();
+    string datastream = x.toStdString();
+    cout << "length of datastream string = " << datastream.length() << endl;
+
+    int iterations = datastream.length()/120;
+    int remainder = datastream.length()%120;
+
+    cout << "iterations = " << iterations << " / remainder = " << remainder << endl;
+
+    for (int n = 0 ; n < iterations ; n++)
+    {
+        image_array.clear();
+        string sub = datastream.substr(n*120,120);
+        image_array.append(sub);
+        server.SayHello();
+    }*/
+
+    for (int b = 0 ; b < image.height() ; b++)
+    {
+        string pixel_values = "";
+        for (int a = 0; a < image.width() ; a++)
+        {
+            int curr_bright = qGray(image.pixel(b,a));
+            pixel_values = pixel_values + to_string(curr_bright) + ",";
+
+        }
+            cout << pixel_values << endl;
+            image_array.clear();
+            image_array.append(pixel_values);
+            server.SayHello();
+    }
+
+
+    image_array.clear();
+    image_array.append("END");
+    server.SayHello();
 
 }
 
 
 void MainWindow::on_TransferModButton_clicked()
 {
+    image_array.clear();
+    image_array.append("hello");
+    server.SayHello();
 
 }
 

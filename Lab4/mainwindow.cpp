@@ -23,6 +23,7 @@
 #include <QElapsedTimer>
 #include <QDataStream>
 #include <QImageWriter>
+#include <QThread>
 
 using namespace std;
 
@@ -61,14 +62,15 @@ MyUDP::MyUDP(QObject *parent):
 {
     socket = new QUdpSocket(this);
     cout << " check ip address" << endl;
-    socket->bind(QHostAddress("172.20.10.11"),80);
+    socket->bind(QHostAddress("192.168.29.193"),80);
 
     connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));
 }
 
 void MyUDP::SayHello()
 {
-    int bytes = socket->writeDatagram(image_array,QHostAddress("172.20.10.11"),80);
+    int bytes = socket->writeDatagram(image_array,QHostAddress("192.168.29.193"),80);
+    socket->waitForBytesWritten(2000);
     total_bytes = total_bytes + (bytes/2);
     cout << "bytes send = " << total_bytes << endl;
 }
@@ -220,27 +222,20 @@ void MainWindow::on_TransferButton_clicked()
     server.SayHello();
     image = QImage(file_Path);
 
-    /*QByteArray temp;
-    QBuffer buffer(&temp);
-    buffer.open(QIODevice::ReadWrite);
-    image.save(&buffer, "BMP");
+    string height = "new_image height=" + to_string(image.height());
+    string width = "new_image width=" + to_string(image.width());
 
-    QString x = buffer.data().toHex();
-    string datastream = x.toStdString();
-    cout << "length of datastream string = " << datastream.length() << endl;
+    image_array.clear();
+    image_array.append(height);
+    server.SayHello();
 
-    int iterations = datastream.length()/120;
-    int remainder = datastream.length()%120;
+    image_array.clear();
+    image_array.append(width);
+    server.SayHello();
 
-    cout << "iterations = " << iterations << " / remainder = " << remainder << endl;
-
-    for (int n = 0 ; n < iterations ; n++)
-    {
-        image_array.clear();
-        string sub = datastream.substr(n*120,120);
-        image_array.append(sub);
-        server.SayHello();
-    }*/
+    image_array.clear();
+    image_array.append("new_image np");
+    server.SayHello();
 
     for (int b = 0 ; b < image.height() ; b++)
     {
@@ -255,6 +250,7 @@ void MainWindow::on_TransferButton_clicked()
             image_array.clear();
             image_array.append(pixel_values);
             server.SayHello();
+            QThread::msleep(2);
     }
 
 
@@ -267,9 +263,49 @@ void MainWindow::on_TransferButton_clicked()
 
 void MainWindow::on_TransferModButton_clicked()
 {
+    total_bytes = 0;
     image_array.clear();
-    image_array.append("hello");
+    image_array.append("new_image");
     server.SayHello();
+    image = ui->labelpic->pixmap().toImage().convertToFormat(QImage::Format_Grayscale8);
+
+
+    string height = "new_image height=" + to_string(image.height());
+    string width = "new_image width=" + to_string(image.width());
+
+    image_array.clear();
+    image_array.append(height);
+    server.SayHello();
+
+    image_array.clear();
+    image_array.append(width);
+    server.SayHello();
+
+    image_array.clear();
+    image_array.append("new_image np");
+    server.SayHello();
+
+    for (int b = 0 ; b < image.height() ; b++)
+    {
+        string pixel_values = "";
+        for (int a = 0; a < image.width() ; a++)
+        {
+            int curr_bright = qGray(image.pixel(b,a));
+            pixel_values = pixel_values + to_string(curr_bright) + ",";
+
+        }
+            cout << pixel_values << endl;
+            image_array.clear();
+            image_array.append(pixel_values);
+            server.SayHello();
+            QThread::msleep(2);
+    }
+
+
+    image_array.clear();
+    image_array.append("END");
+    server.SayHello();
+
 
 }
 

@@ -62,14 +62,14 @@ MyUDP::MyUDP(QObject *parent):
 {
     socket = new QUdpSocket(this);
     cout << " check ip address" << endl;
-    socket->bind(QHostAddress("192.168.29.193"),80);
+    socket->bind(QHostAddress("192.168.29.147"),80);
 
     connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));
 }
 
 void MyUDP::SayHello()
 {
-    int bytes = socket->writeDatagram(image_array,QHostAddress("192.168.29.193"),80);
+    int bytes = socket->writeDatagram(image_array,QHostAddress("192.168.29.147"),80);
     socket->waitForBytesWritten(2000);
     total_bytes = total_bytes + (bytes/2);
     cout << "bytes send = " << total_bytes << endl;
@@ -307,5 +307,47 @@ void MainWindow::on_TransferModButton_clicked()
     server.SayHello();
 
 
+}
+
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    // open dialog box to choose file in computer
+    QString file_Path_overlay = QFileDialog::getOpenFileName(this,
+        tr("Open Image"), "C:/Users/", tr("Image Files (*.png *.jpg *.bmp)"));
+
+    // set overlay image as QImage chosen from dialog box above
+    // set original image as QImage converted from existing pixmap in label_pic
+
+    QImage overlay = QImage(file_Path_overlay).convertToFormat(QImage::Format_Grayscale8);
+    QImage original = ui->labelpic->pixmap().toImage().convertToFormat(QImage::Format_Grayscale8);
+
+
+    // iterate through every pixel on the overlay QImage using for loops, one for height and one for width.
+    // extract the pixel intensity from the overlay image and then replace the pixel in the original image
+    // at the same coordinates.
+
+    for ( int y = 0 ; y < overlay.height() ; y++)
+    {
+        for ( int x = 0 ; x < overlay.width(); x++)
+        {
+
+             int intensity = qGray(overlay.pixel(x,y));
+
+             if (x <= original.width() || y <= original.height())
+             {
+             original.setPixelColor(x+200,y,qRgb(intensity,intensity,intensity));
+             }
+             else
+             {
+                 cout <<" out of range";
+             }
+             //cout << "intensity = " << intensity << endl;
+        }
+    }
+
+    // set the output of the new image as a pixmap object on label_pic to display to GUI
+
+    ui->labelpic->setPixmap(QPixmap::fromImage(original));
 }
 

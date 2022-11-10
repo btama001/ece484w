@@ -31,9 +31,9 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>380</y>
+      <y>370</y>
       <width>121</width>
-      <height>51</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
@@ -96,9 +96,9 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>450</y>
+      <y>420</y>
       <width>121</width>
-      <height>51</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
@@ -109,7 +109,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>380</y>
+      <y>370</y>
       <width>121</width>
       <height>51</height>
      </rect>
@@ -129,6 +129,19 @@
     </property>
     <property name="text">
      <string>Transfer Mod.</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_2">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>470</y>
+      <width>121</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Overlay</string>
     </property>
    </widget>
   </widget>

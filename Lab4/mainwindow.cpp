@@ -213,15 +213,17 @@ void MainWindow::on_saveButton_clicked()
 
 void MainWindow::on_TransferButton_clicked()
 {
-    total_bytes = 0;
+    // clears datagram and lets the FPGA board know to that a new image is being saved
     image_array.clear();
     image_array.append("new_image");
     server.SayHello();
+    // original image is defined at the file path
     image = QImage(file_Path);
 
     string height = "new_image height=" + to_string(image.height());
     string width = "new_image width=" + to_string(image.width());
 
+    // sending image height and width data over UDP
     image_array.clear();
     image_array.append(height);
     server.SayHello();
@@ -230,27 +232,32 @@ void MainWindow::on_TransferButton_clicked()
     image_array.append(width);
     server.SayHello();
 
+    // sending string over UDP to let FPGA know to create a numpy array using height and width
     image_array.clear();
     image_array.append("new_image np");
     server.SayHello();
+
+    // loop to iterate through each pixel
 
     for (int b = 0 ; b < image.height() ; b++)
     {
         string pixel_values = "";
         for (int a = 0; a < image.width() ; a++)
         {
+            // current brightness is found and stored as an appending string
             int curr_bright = qGray(image.pixel(b,a));
             pixel_values = pixel_values + to_string(curr_bright) + ",";
 
         }
-            cout << pixel_values << endl;
+            // sending string of pixel values over UDP (1 row at a time)
+            // sleep function used to mitigate more data loss
             image_array.clear();
             image_array.append(pixel_values);
             server.SayHello();
             QThread::msleep(2);
     }
 
-
+    // letting FPGA know that the image has finished sending
     image_array.clear();
     image_array.append("END");
     server.SayHello();
@@ -260,6 +267,8 @@ void MainWindow::on_TransferButton_clicked()
 
 void MainWindow::on_TransferModButton_clicked()
 {
+    // declares new image to python script
+    // image object is declared as the current image in the GUI which includes modifications
     image_array.clear();
     image_array.append("new_image");
     server.SayHello();
@@ -268,6 +277,8 @@ void MainWindow::on_TransferModButton_clicked()
 
     string height = "new_image height=" + to_string(image.height());
     string width = "new_image width=" + to_string(image.width());
+
+    // height and width sent to python script over UDP to create numpy array
 
     image_array.clear();
     image_array.append(height);
@@ -281,6 +292,8 @@ void MainWindow::on_TransferModButton_clicked()
     image_array.append("new_image np");
     server.SayHello();
 
+
+    // sending all pixel values over UDP
     for (int b = 0 ; b < image.height() ; b++)
     {
         string pixel_values = "";
@@ -297,7 +310,7 @@ void MainWindow::on_TransferModButton_clicked()
             QThread::msleep(2);
     }
 
-
+    // letting python script that modified image has been sent
     image_array.clear();
     image_array.append("END");
     server.SayHello();

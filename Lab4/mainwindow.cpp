@@ -62,17 +62,14 @@ MyUDP::MyUDP(QObject *parent):
 {
     socket = new QUdpSocket(this);
     cout << " check ip address" << endl;
-    socket->bind(QHostAddress("192.168.29.147"),80);
+    socket->bind(QHostAddress("192.168.29.141"),80);
 
     connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));
 }
 
 void MyUDP::SayHello()
 {
-    int bytes = socket->writeDatagram(image_array,QHostAddress("192.168.29.147"),80);
-    socket->waitForBytesWritten(2000);
-    total_bytes = total_bytes + (bytes/2);
-    cout << "bytes send = " << total_bytes << endl;
+    socket->writeDatagram(image_array,QHostAddress("192.168.29.141"),80);
 }
 
 void MyUDP::readyRead()
@@ -263,7 +260,6 @@ void MainWindow::on_TransferButton_clicked()
 
 void MainWindow::on_TransferModButton_clicked()
 {
-    total_bytes = 0;
     image_array.clear();
     image_array.append("new_image");
     server.SayHello();

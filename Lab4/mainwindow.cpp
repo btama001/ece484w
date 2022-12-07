@@ -62,14 +62,14 @@ MyUDP::MyUDP(QObject *parent):
 {
     socket = new QUdpSocket(this);
     cout << " check ip address" << endl;
-    socket->bind(QHostAddress("192.168.29.141"),80);
+    socket->bind(QHostAddress("192.168.29.190"),80);
 
     connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));
 }
 
 void MyUDP::SayHello()
 {
-    socket->writeDatagram(image_array,QHostAddress("192.168.29.141"),80);
+    socket->writeDatagram(image_array,QHostAddress("192.168.29.190"),80);
 }
 
 void MyUDP::readyRead()

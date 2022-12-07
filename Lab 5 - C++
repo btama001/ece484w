@@ -1,0 +1,73 @@
+
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/highgui.hpp"
+#include <opencv2/opencv.hpp>
+#include <sys/time.h>
+#include "D8MCapture.h"
+#include "hps_0.h"
+
+using namespace cv;
+using namespace std;
+
+#ifndef CAPTURE_RAM_DEVICE
+#define CAPTURE_RAM_DEVICE "/dev/f2h-dma-memory"
+#endif /* ifndef CAPTURE_RAM_DEVICE */
+
+int main()
+{
+    Mat src, overlay, dst, image2;
+    D8MCapture *cap = new D8MCapture(TV_DECODER_TERASIC_STREAM_CAPTURE_BASE, CAPTURE_RAM_DEVICE);
+    if (!cap->isOpened()) {
+        return -1;
+    }
+
+    char str[100];
+    static struct timeval last_time;
+    struct timeval current_time;
+    static float last_fps;
+    float t;
+    float fps;
+    double alpha = 0.5;
+    double beta;
+
+    overlay = imread("/home/root/Lab4/Image.png");
+    if ( overlay.empty() ) { cout << "Error loading overlay" << endl; return EXIT_FAILURE;}
+    namedWindow("camera");
+
+    while (1) {
+        if (!cap->read(src))
+            return -1;
+
+        //imwrite("source.jpg", src);
+        overlay = imread("/home/root/Lab4/Image.png");
+        gettimeofday(&current_time, NULL);
+        t = (current_time.tv_sec - last_time.tv_sec)
+                + (current_time.tv_usec - last_time.tv_usec) / 1000000.;
+        fps = 1. / t;
+        fps = last_fps * 0.8 + fps * 0.2;
+        last_fps = fps;
+        last_time = current_time;
+        sprintf(str, "%2.2f, %2.6f", fps, t);
+        putText(src, str, Point(20, 40), FONT_HERSHEY_DUPLEX, 1,
+                Scalar(0, 255, 0));
+        Mat resized_overlay;
+        resize(overlay, resized_overlay, Size(800,480),INTER_LINEAR);
+        Mat overlay_3;
+         beta = ( 1.0 - alpha);
+         cvtColor( src, overlay_3 , CV_RGBA2RGB);
+         addWeighted(overlay_3, alpha, resized_overlay, beta, 0.0, dst);
+
+        imshow("camera", dst);
+        cout << "overlay depth and channels = " << resized_overlay.size() << " " << resized_overlay.channels() << endl;
+        cout << "webcam depth and channels = " << overlay_3.size() << " " << overlay_3.channels() << endl;
+        //-- bail out if escape was pressed
+        int c = waitKey(10);
+        if ((char) c == 27) {
+            break;
+        }
+    }
+    delete cap;
+    destroyAllWindows();
+
+    return 0;
+}
